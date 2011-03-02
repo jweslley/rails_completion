@@ -17,7 +17,7 @@ Two-step installation:
   1. Copy the `rails.bash` file to somewhere (e.g. ~/.rails.bash).
   2. Add the following line to your `.bashrc`:
 
-      source ~/.rails.bash
+        source ~/.rails.bash
 
 Alternatively, on Debian systems, you can just copy the `rails.bash` file to `/etc/bash_completion.d/` directory.
 
@@ -78,6 +78,6 @@ If you discover any bugs or have some idea, feel free to create an issue on GitH
 
 ## License
 
-Copyright (c) 2011 [Jonhnny Weslley](<http://jonhnnyweslley.net>)
+Copyright (c) 2011 [Jonhnny Weslley](<http://www.jonhnnyweslley.net>)
 
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License, version 3, as published by the Free Software Foundation.
