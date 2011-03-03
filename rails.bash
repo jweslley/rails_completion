@@ -19,7 +19,7 @@
 #
 #  http://github.com/jweslley/rails_completion
 #
-#  VERSION: 0.1.0
+#  VERSION: 0.1.1
 
 
 RAILSCOMP_FILE=".rails_generators~"
@@ -56,9 +56,8 @@ __rails_generator_cache() {
   template_engine="erb"
 
   echo "
-    require 'rubygems'
-    require 'rails/generators'
     require 'config/application'
+    require 'rails/generators'
 
     Rails::Generators.configure!
 
