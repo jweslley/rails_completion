@@ -19,7 +19,7 @@
 #
 #  http://github.com/jweslley/rails_completion
 #
-#  VERSION: 0.1.1
+#  VERSION: 0.1.2
 
 
 RAILSCOMP_FILE=".rails_generators~"
@@ -49,58 +49,17 @@ __rails_env(){
 # Generators -------------------------------------------------------------------
 
 __rails_generator_cache() {
-
-  # TODO hard-coded options. Get them from COMP_WORDS.
-  orm="active_record"
-  test_framework="test_unit"
-  template_engine="erb"
-
   echo "
     require 'config/application'
     require 'rails/generators'
 
     Rails::Generators.configure!
+    Rails::Generators.lookup!
 
-    hidden_namespaces = [
-      'rails',
-      '${orm}:migration',
-      '${orm}:model',
-      '${orm}:observer',
-      '${orm}:session_migration',
-      '${test_framework}:controller',
-      '${test_framework}:helper',
-      '${test_framework}:integration',
-      '${test_framework}:mailer',
-      '${test_framework}:model',
-      '${test_framework}:observer',
-      '${test_framework}:scaffold',
-      '${test_framework}:view',
-      '${test_framework}:performance',
-      '${test_framework}:plugin',
-      '${template_engine}:controller',
-      '${template_engine}:scaffold',
-      '${template_engine}:mailer'
-    ]
-
-    rails_generators = [
-      'controller',
-      'generator',
-      'helper',
-      'integration_test',
-      'mailer',
-      'migration',
-      'model',
-      'observer',
-      'performance_test',
-      'plugin',
-      'resource',
-      'scaffold',
-      'scaffold_controller',
-      'session_migration',
-      'stylesheets',
-    ]
-
-    generators = Rails::Generators.help.map{|i| i[1]}.flatten - hidden_namespaces + rails_generators
+    generators = Rails::Generators.subclasses.map(&:namespace)
+    hidden_namespaces = Rails::Generators.hidden_namespaces
+    generators -= hidden_namespaces + ['rails:app']
+    generators.map!{ |g| g.gsub(/^rails:/, '') }
 
     File.open(File.join(Rails.root, '${RAILSCOMP_FILE}'), 'w') do |f|
       generators.each { |g| f.puts g }
