@@ -19,7 +19,7 @@
 #
 #  http://github.com/jweslley/rails_completion
 #
-#  VERSION: 0.1.2
+#  VERSION: 0.1.3
 
 
 RAILSCOMP_FILE=".rails_generators~"
@@ -50,7 +50,7 @@ __rails_env(){
 
 __rails_generator_cache() {
   echo "
-    require 'config/application'
+    require ::File.expand_path('../config/application',  __FILE__)
     require 'rails/generators'
 
     Rails::Generators.configure!
