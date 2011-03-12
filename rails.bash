@@ -19,11 +19,10 @@
 #
 #  http://github.com/jweslley/rails_completion
 #
-#  VERSION: 0.1.3
+#  VERSION: 0.1.4
 
 
 RAILSCOMP_FILE=".rails_generators~"
-RUNTIME_OPTS="--force --skip --pretend --quiet"
 
 __railscomp(){
   local cur="${COMP_WORDS[COMP_CWORD]}"
@@ -46,9 +45,15 @@ __rails_env(){
   __railscomp "{-e,--environment=}{test,development,production}"
 }
 
+#
+# @param $1 Field's name
+__rails_types(){
+  __railscomp "${1%:*}:{string,text,integer,float,decimal,datetime,timestamp,date,time,binary,boolean,references}"
+}
+
 # Generators -------------------------------------------------------------------
 
-__rails_generator_cache() {
+__rails_generators_create_cache(){
   echo "
     require ::File.expand_path('../config/application',  __FILE__)
     require 'rails/generators'
@@ -56,102 +61,55 @@ __rails_generator_cache() {
     Rails::Generators.configure!
     Rails::Generators.lookup!
 
-    generators = Rails::Generators.subclasses.map(&:namespace)
-    hidden_namespaces = Rails::Generators.hidden_namespaces
-    generators -= hidden_namespaces + ['rails:app']
-    generators.map!{ |g| g.gsub(/^rails:/, '') }
+    hidden_namespaces = Rails::Generators.hidden_namespaces + ['rails:app']
+    generators = Rails::Generators.subclasses.select do |generator|
+      hidden_namespaces.exclude? generator.namespace
+    end
+
+    shell = Thor::Shell::Basic.new
+    generators_opts = generators.inject({}) do |hash, generator|
+      options = (generator.class_options_help(shell).values.flatten +
+                  generator.class_options.values).uniq.map do |opt|
+        boolean_opt = opt.type == :boolean || opt.banner.empty?
+        boolean_opt ? opt.switch_name : \"#{opt.switch_name}=\"
+      end
+      hash[generator.namespace.gsub(/^rails:/, '')] = options
+      hash
+    end
 
     File.open(File.join(Rails.root, '${RAILSCOMP_FILE}'), 'w') do |f|
-      generators.each { |g| f.puts g }
+      YAML.dump(generators_opts, f)
     end
   " | ruby > /dev/null
+}
+
+__rails_generators_opts(){
+  echo "
+    require 'yaml'
+    generator = '$1'
+    generators_opts = YAML.load_file('${RAILSCOMP_FILE}')
+    opts = generator.empty? ? generators_opts.keys : generators_opts[generator]
+    opts.each { |opt| puts opt }
+  " | ruby
 }
 
 __rails_generators(){
   recent=`ls -t "$RAILSCOMP_FILE" Gemfile 2> /dev/null | head -n 1`
   if [[ $recent != "$RAILSCOMP_FILE" ]]; then
-    __rails_generator_cache
+    __rails_generators_create_cache
   fi
-  __railscomp "`cat "$RAILSCOMP_FILE"`"
+  __railscomp "$(__rails_generators_opts)"
 }
 
-#
-# @param $1 Field's name
-__rails_types(){
-  __railscomp "${1%:*}:{string,text,integer,float,decimal,datetime,timestamp,date,time,binary,boolean,references}"
-}
-
-#
-# @param $1 Option's list
-__rails_generator_with_fields_and_options(){
+__rails_generator_options(){
   local cur
   _get_comp_words_by_ref cur
 
   if [[ $cur == *:* ]]; then
     __rails_types "$cur"
   else
-    __railscomp "$1 $RUNTIME_OPTS"
+    __railscomp "$(__rails_generators_opts $1)"
   fi
-}
-
-__rails_controller_generator(){
-  __railscomp "-e --template-engine= -t --test-framework= --helper $RUNTIME_OPTS" 
-}
-
-__rails_generator_generator(){
-  __railscomp "--namespace $RUNTIME_OPTS"
-}
-
-__rails_helper_generator(){
-  __railscomp "-t --test-framework= $RUNTIME_OPTS" 
-}
-
-__rails_integration_test_generator(){
-  __railscomp "--integration-tool= $RUNTIME_OPTS"
-}
-
-__rails_mailer_generator(){
-  __railscomp "-e --template-engine= -t --test-framework= $RUNTIME_OPTS"
-}
-
-__rails_migration_generator(){
-  __rails_generator_with_fields_and_options "-o --orm="
-}
-
-__rails_model_generator(){
-  __rails_generator_with_fields_and_options "-o --orm= --fixture -r --fixture-replacement= --migration --parent= --timestamps -t --test-framework="
-}
-
-__rails_observer_generator(){
-  __railscomp "-o --orm= -t --test-framework= $RUNTIME_OPTS"
-}
-
-__rails_performance_test_generator(){
-  __railscomp "--performance-tool= $RUNTIME_OPTS" 
-}
-
-__rails_plugin_generator(){
-  __railscomp "-t --test-framework= -g --generator -r --tasks= $RUNTIME_OPTS" 
-}
-
-__rails_resource_generator(){
-  __rails_generator_with_fields_and_options "force-plural -a --actions= -c --resource-controller= -o --orm= --fixture -r --fixture-replacement= --migration --parent= --timestamps -e --template-engine= -t --test-framework= --helper"
-}
-
-__rails_scaffold_generator(){
-  __rails_generator_with_fields_and_options "-c --scaffold-controller= -o --orm= --force-plural -y --stylesheets -t --test_framework= -e --template-engine= --helper"
-}
-
-__rails_scaffold_controller_generator(){
-  __railscomp "-t --test-framework= -e --template-engine= -o --orm= --force-plural --helper $RUNTIME_OPTS"
-}
-
-__rails_session_migration(){
-  __railscomp "-o --orm= $RUNTIME_OPTS"
-}
-
-__rails_stylesheets_generator(){
-  __railscomp "$RUNTIME_OPTS" 
 }
 
 # end of Generators ------------------------------------------------------------
@@ -163,7 +121,7 @@ _rails_generate(){
   local cur generator generators
   _get_comp_words_by_ref cur
 
-  generators=$(test -f "$RAILSCOMP_FILE" && cat "$RAILSCOMP_FILE")
+  generators=$(test -f "$RAILSCOMP_FILE" && __rails_generators_opts)
   __railscmd generator "$generators"
 
   if [ -z "$generator" ]; then
@@ -174,8 +132,7 @@ _rails_generate(){
     return
   fi
 
-  local completion_func="__rails_${generator}_generator"
-  declare -F $completion_func >/dev/null && $completion_func && return
+  __rails_generator_options "$generator"
 }
 
 _rails_new(){
@@ -188,7 +145,7 @@ _rails_new(){
       return
       ;;
   esac
- 
+
   case "$prev" in
     -r*|--ruby=*|-b*|--builder=*|-m*|--template=*) _filedir ;;
     *) __railscomp "-G --skip-git --dev --edge --skip-gemfile -O --skip-active-record
@@ -207,7 +164,7 @@ _rails_server(){
       return
       ;;
   esac
- 
+
   case "$prev" in
     -c*|--config=*|-P*|--pid=*) _filedir ;;
     *) __railscomp "-h --help -P --pid= -e --environment= -u --debugger -d --daemon -c --config= -b --binding= -p --port=" ;;
@@ -231,7 +188,7 @@ _rails_profiler(){
 _rails_plugin(){
   local cur prev
   _get_comp_words_by_ref cur prev
- 
+
   case "$prev" in
     -r*|--root=*) _filedir ;;
     *) __railscomp "-h --help -v --verbose -r --root= -s --source= install remove" ;;
