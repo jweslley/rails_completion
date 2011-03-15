@@ -19,7 +19,7 @@
 #
 #  http://github.com/jweslley/rails_completion
 #
-#  VERSION: 0.1.4
+#  VERSION: 0.1.5
 
 
 RAILSCOMP_FILE=".rails_generators~"
@@ -112,6 +112,16 @@ __rails_generator_options(){
   fi
 }
 
+#
+# @param $1 file's path
+# @param $2 filename suffix
+# @param $3 name's suffix
+# @param $4 kind. Defaults to class.
+__rails_destroy(){
+  __railscomp "$(find "$1" -name "*$2.rb" -exec grep ".*${4-class}.*$3.*" {} \; \
+                  | awk '{ print $2 }' | sed s/$3$//g)"
+}
+
 # end of Generators ------------------------------------------------------------
 
 
@@ -133,6 +143,35 @@ _rails_generate(){
   fi
 
   __rails_generator_options "$generator"
+}
+
+_rails_destroy(){
+  local cur generator generators
+  _get_comp_words_by_ref cur
+
+  generators=$(test -f "$RAILSCOMP_FILE" && __rails_generators_opts)
+  __railscmd generator "$generators"
+
+  if [ -z "$generator" ]; then
+    case "$cur" in
+      -*) __railscomp "-h --help" ;;
+      *) __rails_generators ;;
+    esac
+    return
+  fi
+
+  case "$generator" in
+    model|scaffold|resource) __rails_destroy "app/models/" ;;
+    migration|session_migration) __rails_destroy "db/migrate/" ;;
+    mailer) __rails_destroy "app/mailers/" ;;
+    observer) __rails_destroy "app/models/" "_observer" "Observer" ;;
+    controller|scaffold_controller) __rails_destroy "app/controllers/" "_controller" "Controller" ;;
+    helper) __rails_destroy "app/helpers/" "_helper" "Helper" "module" ;;
+    integration_test) __rails_destroy "test/integration/" "_test" "Test" ;;
+    performance_test) __rails_destroy "test/performance/" "_test" "Test" ;;
+    generator) __rails_destroy "lib/generators/" "_generator" "Generator" ;;
+    *) COMPREPLY=() ;;
+  esac
 }
 
 _rails_new(){
@@ -246,7 +285,7 @@ _rails(){
     s|server)     _rails_server ;;
     c|console)    _rails_console ;;
     g|generate)   _rails_generate ;;
-    destroy)      _rails_generate ;;
+    destroy)      _rails_destroy ;;
     profiler)     _rails_profiler ;;
     plugin)       _rails_plugin ;;
     runner)       _rails_runner ;;
