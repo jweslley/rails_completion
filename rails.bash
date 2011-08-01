@@ -73,6 +73,7 @@ __rails_generators_create_cache(){
         boolean_opt = opt.type == :boolean || opt.banner.empty?
         boolean_opt ? opt.switch_name : \"#{opt.switch_name}=\"
       end
+      options << '--help'
       hash[generator.namespace.gsub(/^rails:/, '')] = options
       hash
     end
