@@ -19,7 +19,7 @@
 #
 #  http://github.com/jweslley/rails_completion
 #
-#  VERSION: 0.1.7
+#  VERSION: 0.1.8
 
 
 RAILSCOMP_FILE=".rails_generators~"
@@ -180,16 +180,17 @@ _rails_new(){
 
   case "$cur" in
     -d*|--database=*)
-      __railscomp "{-d,--database=}{mysql,oracle,postgresql,sqlite3,frontbase,ibm_db}"
+      __railscomp "{-d,--database=}{mysql,oracle,postgresql,sqlite3,frontbase,ibm_db,jdbcmysql,jdbcsqlite3,jdbcpostgresql,jdbc}"
       return
       ;;
   esac
 
   case "$prev" in
     --ruby=*|--builder=*|--template=*) _filedir ;;
-    *) __railscomp "--skip-git --dev --edge --skip-gemfile --skip-active-record
-      --skip-prototype --skip-test-unit --skip --force --pretend --quiet --help
-      --version --builder= --template= -d --database= --ruby="
+    *) __railscomp "--skip-test-unit --dev --skip-sprockets --javascript=
+      --skip-javascript --template= --ruby= --edge --skip-git --builder=
+      --old-style-hash --skip-gemfile --database= --skip-active-record
+      --skip-bundle --quiet --skip --force --pretend"
   esac
 }
 
@@ -211,7 +212,7 @@ _rails_server(){
 }
 
 _rails_console(){
-  __railscomp "test development production --sandbox --debugger"
+  __railscomp "test development production --sandbox --debugger --help"
 }
 
 _rails_profiler(){
@@ -230,7 +231,7 @@ _rails_plugin(){
 
   case "$prev" in
     --root=*) _filedir ;;
-    *) __railscomp "--help --verbose --root= --source= install remove" ;;
+    *) __railscomp "--help --verbose --root= install remove" ;;
   esac
 }
 
