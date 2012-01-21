@@ -48,7 +48,7 @@ __rails_env(){
 #
 # @param $1 Field's name
 __rails_types(){
-  __railscomp "${1%:*}:{string,text,integer,float,decimal,datetime,timestamp,date,time,binary,boolean,references}"
+  __railscomp "${1%:*}:{string,text,integer,float,decimal,datetime,timestamp,date,time,binary,boolean,references,index,uniq}"
 }
 
 # Generators -------------------------------------------------------------------
