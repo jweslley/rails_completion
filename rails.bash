@@ -19,7 +19,7 @@
 #
 #  http://github.com/jweslley/rails_completion
 #
-#  VERSION: 0.1.8
+#  VERSION: 0.1.9
 
 
 RAILSCOMP_FILE=".rails_generators~"
@@ -286,7 +286,7 @@ _rails(){
     s|server)     _rails_server ;;
     c|console)    _rails_console ;;
     g|generate)   _rails_generate ;;
-    destroy)      _rails_destroy ;;
+    d|destroy)    _rails_destroy ;;
     profiler)     _rails_profiler ;;
     plugin)       _rails_plugin ;;
     runner)       _rails_runner ;;
