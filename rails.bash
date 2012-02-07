@@ -19,7 +19,7 @@
 #
 #  http://github.com/jweslley/rails_completion
 #
-#  VERSION: 0.1.9
+#  VERSION: 0.2.0
 
 
 RAILSCOMP_FILE=".rails_generators~"
@@ -58,7 +58,6 @@ __rails_generators_create_cache(){
     require ::File.expand_path('../config/application',  __FILE__)
     require 'rails/generators'
 
-    Rails::Generators.configure!
     Rails::Generators.lookup!
 
     hidden_namespaces = Rails::Generators.hidden_namespaces + ['rails:app']

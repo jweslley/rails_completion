@@ -21,6 +21,14 @@ Two-step installation:
 
 Alternatively, on Debian systems, you can just copy the `rails.bash` file to `/etc/bash_completion.d/` directory.
 
+## Requirements
+
+  * Rails 3
+
+Current version of `bash_completion` supports all command-line options available in Rails 3.2.x, if you want to use it with Rails 3.0.y or 3.1.z you should check this version:
+
+    https://github.com/jweslley/rails_completion/tree/v0.1.9
+
 ## Basic Usage
 
 Typical usage is to change into a rails application and get some work.
@@ -59,9 +67,9 @@ In the following example, I use the 'devise' plugin on `Gemfile`:
 In some generators (scaffold, model, resource and migration), you can declare fields to be generated using the syntax `field:type`. The `rails.bash` script also provides support for field's type completion. For this, just type the field name followed by a colon (`:`) and hit `<Tab><Tab>`:
 
     $ rails g model Blog title:<Tab><Tab>
-    title:binary     title:datetime   title:integer    title:time       
-    title:boolean    title:decimal    title:string     title:timestamp  
-    title:date       title:float      title:text       
+    title:binary     title:datetime   title:integer    title:time
+    title:boolean    title:decimal    title:string     title:timestamp
+    title:date       title:float      title:text
     $ rails g model Blog title:s<Tab>
     $ rails g model Blog title:string
     ...
