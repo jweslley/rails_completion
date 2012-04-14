@@ -288,7 +288,7 @@ _rails(){
     d|destroy)    _rails_destroy ;;
     profiler)     _rails_profiler ;;
     plugin)       _rails_plugin ;;
-    runner)       _rails_runner ;;
+    r|runner)     _rails_runner ;;
     benchmarker)  _rails_benchmarker ;;
     db|dbconsole) COMPREPLY=() ;;
     *) COMPREPLY=() ;;
