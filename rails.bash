@@ -257,7 +257,13 @@ _rails_runner(){
 }
 
 _rails_benchmarker(){
-  __railscomp "--help"
+  local cur prev
+  _get_comp_words_by_ref cur
+
+  case "$cur" in
+    -*) __railscomp "--help --runs --output --metrics" ;;
+    *) COMPREPLY=() ;;
+  esac
 }
 
 # end of Rails commands --------------------------------------------------------
