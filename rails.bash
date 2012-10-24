@@ -220,6 +220,18 @@ _rails_console(){
   __railscomp "test development production --sandbox --debugger --help"
 }
 
+_rails_dbconsole(){
+  local environment
+
+  __railscmd environment "test development production"
+
+  if [ -z "$environment" ]; then
+    __railscomp "test development production"
+  else
+    __railscomp "--include-password --header --mode"
+  fi
+}
+
 _rails_profiler(){
   local cur prev
   _get_comp_words_by_ref cur
@@ -300,7 +312,7 @@ _rails(){
     profiler)     _rails_profiler ;;
     plugin)       _rails_plugin ;;
     benchmarker)  _rails_benchmarker ;;
-    db|dbconsole) COMPREPLY=() ;;
+    db|dbconsole) _rails_dbconsole ;;
     *) COMPREPLY=() ;;
   esac
 }
