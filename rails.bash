@@ -225,8 +225,8 @@ _rails_profiler(){
   _get_comp_words_by_ref cur
 
   case "$cur" in
-    -*) __railscomp "--help" ;;
-    *) __railscomp "flat graph graph_html"
+    -*) __railscomp "--help --runs --output --metrics --formats" ;;
+    *) COMPREPLY=() ;;
   esac
 }
 
