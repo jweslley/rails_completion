@@ -24,6 +24,9 @@
 
 RAILSCOMP_FILE=".rails_generators~"
 
+
+# helper functions -------------------------------------------------------------
+
 __railscomp(){
   local cur="${COMP_WORDS[COMP_CWORD]}"
   COMPREPLY=( $( compgen -W "$1" -- "$cur" ) )
@@ -55,8 +58,6 @@ __rails_types(){
   __railscomp "${1%:*}:{string,text,integer,float,decimal,datetime,timestamp,date,time,binary,boolean,references,index,uniq}"
 }
 
-# new --------------------------------------------------------------------------
-
 __rails_new(){
   local cur prev
   _get_comp_words_by_ref cur prev
@@ -76,8 +77,10 @@ __rails_new(){
   _filedir
 }
 
+# end of helper functions ------------------------------------------------------
 
-# Generators -------------------------------------------------------------------
+
+# generators -------------------------------------------------------------------
 
 __rails_generators_create_cache(){
   echo "
@@ -153,10 +156,66 @@ __rails_destroy(){
   esac
 }
 
-# end of Generators ------------------------------------------------------------
+# end of generators ------------------------------------------------------------
 
 
-# Rails commands ---------------------------------------------------------------
+# rails commands ---------------------------------------------------------------
+
+_rails_new(){
+  if [ "${COMP_WORDS[1]}" == "plugin" ]; then
+    __rails_new "--ruby= --builder= --template=
+      --skip-gemfile --skip-bundle --skip-git --skip-active-record --skip-sprockets
+      --database= --javascript= --skip-javascript --dev --edge --skip-test-unit
+      --old-style-hash --dummy-path= --full --mountable --skip-gemspec
+      --force --pretend --quiet --skip --help"
+  else
+    __rails_new "--ruby= --builder= --template=
+      --skip-gemfile --skip-bundle --skip-git --skip-active-record --skip-sprockets
+      --database= --javascript= --skip-javascript --dev --edge --skip-test-unit
+      --old-style-hash --force --pretend --quiet --skip --help"
+  fi
+}
+
+_rails_plugin(){
+  if [[ -f "script/rails" ]]; then
+    __railscomp "--help --verbose --root= install remove"
+  else
+    __railscomp "new"
+  fi
+}
+
+_rails_server(){
+  local cur prev
+  _get_comp_words_by_ref cur prev
+
+  case "$cur" in
+    -e*|--environment=*)
+      __rails_env
+      return
+      ;;
+  esac
+
+  case "$prev" in
+    --config=*|--pid=*) _filedir ;;
+    *) __railscomp "--help --pid= -e --environment= --debugger --daemon --config= --binding= --port=" ;;
+  esac
+}
+
+_rails_console(){
+  __railscomp "test development production --sandbox --debugger --help"
+}
+
+_rails_dbconsole(){
+  local environment
+
+  __railscmd environment "test development production"
+
+  if [ -z "$environment" ]; then
+    __railscomp "test development production"
+  else
+    __railscomp "--include-password --header --mode"
+  fi
+}
 
 _rails_generate(){
   local cur generator generators
@@ -205,72 +264,6 @@ _rails_destroy(){
   esac
 }
 
-_rails_new(){
-  if [ "${COMP_WORDS[1]}" == "plugin" ]; then
-    __rails_new "--ruby= --builder= --template=
-      --skip-gemfile --skip-bundle --skip-git --skip-active-record --skip-sprockets
-      --database= --javascript= --skip-javascript --dev --edge --skip-test-unit
-      --old-style-hash --dummy-path= --full --mountable --skip-gemspec
-      --force --pretend --quiet --skip --help"
-  else
-    __rails_new "--ruby= --builder= --template=
-      --skip-gemfile --skip-bundle --skip-git --skip-active-record --skip-sprockets
-      --database= --javascript= --skip-javascript --dev --edge --skip-test-unit
-      --old-style-hash --force --pretend --quiet --skip --help"
-  fi
-}
-
-_rails_server(){
-  local cur prev
-  _get_comp_words_by_ref cur prev
-
-  case "$cur" in
-    -e*|--environment=*)
-      __rails_env
-      return
-      ;;
-  esac
-
-  case "$prev" in
-    --config=*|--pid=*) _filedir ;;
-    *) __railscomp "--help --pid= -e --environment= --debugger --daemon --config= --binding= --port=" ;;
-  esac
-}
-
-_rails_console(){
-  __railscomp "test development production --sandbox --debugger --help"
-}
-
-_rails_dbconsole(){
-  local environment
-
-  __railscmd environment "test development production"
-
-  if [ -z "$environment" ]; then
-    __railscomp "test development production"
-  else
-    __railscomp "--include-password --header --mode"
-  fi
-}
-
-_rails_profiler(){
-  local cur prev
-  _get_comp_words_by_ref cur
-
-  case "$cur" in
-    -*) __railscomp "--help --runs --output --metrics --formats" ;;
-    *) COMPREPLY=() ;;
-  esac
-}
-
-_rails_plugin(){
-  if [[ -f "script/rails" ]]; then
-    __railscomp "--help --verbose --root= install remove"
-  else
-    __railscomp "new"
-  fi
-}
-
 _rails_runner(){
   local cur prev
   _get_comp_words_by_ref cur prev
@@ -287,6 +280,16 @@ _rails_runner(){
   esac
 }
 
+_rails_profiler(){
+  local cur prev
+  _get_comp_words_by_ref cur
+
+  case "$cur" in
+    -*) __railscomp "--help --runs --output --metrics --formats" ;;
+    *) COMPREPLY=() ;;
+  esac
+}
+
 _rails_benchmarker(){
   local cur prev
   _get_comp_words_by_ref cur
@@ -297,7 +300,7 @@ _rails_benchmarker(){
   esac
 }
 
-# end of Rails commands --------------------------------------------------------
+# end of rails commands --------------------------------------------------------
 
 
 _rails(){
@@ -326,12 +329,12 @@ _rails(){
     plugin)       _rails_plugin ;;
     s|server)     _rails_server ;;
     c|console)    _rails_console ;;
+    db|dbconsole) _rails_dbconsole ;;
     g|generate)   _rails_generate ;;
     d|destroy)    _rails_destroy ;;
     r|runner)     _rails_runner ;;
     profiler)     _rails_profiler ;;
     benchmarker)  _rails_benchmarker ;;
-    db|dbconsole) _rails_dbconsole ;;
     *) COMPREPLY=() ;;
   esac
 }
