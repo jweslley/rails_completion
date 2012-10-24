@@ -45,11 +45,37 @@ __rails_env(){
   __railscomp "{-e,--environment=}{test,development,production}"
 }
 
+__rails_database(){
+  __railscomp "{-d,--database=}{mysql,oracle,postgresql,sqlite3,frontbase,ibm_db,jdbcmysql,jdbcsqlite3,jdbcpostgresql,jdbc}"
+}
+
 #
 # @param $1 Field's name
 __rails_types(){
   __railscomp "${1%:*}:{string,text,integer,float,decimal,datetime,timestamp,date,time,binary,boolean,references,index,uniq}"
 }
+
+# new --------------------------------------------------------------------------
+
+__rails_new(){
+  local cur prev
+  _get_comp_words_by_ref cur prev
+
+  case "$cur" in
+    -d*|--database=*)
+      __rails_database
+      return
+      ;;
+    --ruby=*|--builder=*|--template=*)
+      _filedir
+      return
+      ;;
+    -*) __railscomp "$1" ;;
+  esac
+
+  _filedir
+}
+
 
 # Generators -------------------------------------------------------------------
 
@@ -180,23 +206,18 @@ _rails_destroy(){
 }
 
 _rails_new(){
-  local cur prev
-  _get_comp_words_by_ref cur prev
-
-  case "$cur" in
-    -d*|--database=*)
-      __railscomp "{-d,--database=}{mysql,oracle,postgresql,sqlite3,frontbase,ibm_db,jdbcmysql,jdbcsqlite3,jdbcpostgresql,jdbc}"
-      return
-      ;;
-  esac
-
-  case "$prev" in
-    --ruby=*|--builder=*|--template=*) _filedir ;;
-    *) __railscomp "--skip-test-unit --dev --skip-sprockets --javascript=
-      --skip-javascript --template= --ruby= --edge --skip-git --builder=
-      --old-style-hash --skip-gemfile --database= --skip-active-record
-      --skip-bundle --quiet --skip --force --pretend"
-  esac
+  if [ "${COMP_WORDS[1]}" == "plugin" ]; then
+    __rails_new "--ruby= --builder= --template=
+      --skip-gemfile --skip-bundle --skip-git --skip-active-record --skip-sprockets
+      --database= --javascript= --skip-javascript --dev --edge --skip-test-unit
+      --old-style-hash --dummy-path= --full --mountable --skip-gemspec
+      --force --pretend --quiet --skip --help"
+  else
+    __rails_new "--ruby= --builder= --template=
+      --skip-gemfile --skip-bundle --skip-git --skip-active-record --skip-sprockets
+      --database= --javascript= --skip-javascript --dev --edge --skip-test-unit
+      --old-style-hash --force --pretend --quiet --skip --help"
+  fi
 }
 
 _rails_server(){
@@ -243,13 +264,11 @@ _rails_profiler(){
 }
 
 _rails_plugin(){
-  local cur prev
-  _get_comp_words_by_ref cur prev
-
-  case "$prev" in
-    --root=*) _filedir ;;
-    *) __railscomp "--help --verbose --root= install remove" ;;
-  esac
+  if [[ -f "script/rails" ]]; then
+    __railscomp "--help --verbose --root= install remove"
+  else
+    __railscomp "new"
+  fi
 }
 
 _rails_runner(){
@@ -289,7 +308,7 @@ _rails(){
   if [[ -f "script/rails" ]]; then
     commands="s server c console g generate d destroy r runner profiler plugin benchmarker db dbconsole"
   else
-    commands="new"
+    commands="new plugin"
   fi
 
   __railscmd command "$commands"
@@ -304,13 +323,13 @@ _rails(){
 
   case "$command" in
     new)          _rails_new ;;
+    plugin)       _rails_plugin ;;
     s|server)     _rails_server ;;
     c|console)    _rails_console ;;
     g|generate)   _rails_generate ;;
     d|destroy)    _rails_destroy ;;
     r|runner)     _rails_runner ;;
     profiler)     _rails_profiler ;;
-    plugin)       _rails_plugin ;;
     benchmarker)  _rails_benchmarker ;;
     db|dbconsole) _rails_dbconsole ;;
     *) COMPREPLY=() ;;
