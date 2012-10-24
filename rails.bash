@@ -117,8 +117,14 @@ __rails_generator_options(){
 # @param $3 name's suffix
 # @param $4 kind. Defaults to class.
 __rails_destroy(){
-  __railscomp "$(find "$1" -name "*$2.rb" -exec grep ".*${4-class}.*$3.*" {} \; \
-                  | awk '{ print $2 }' | sed s/$3$//g)"
+  local cur
+  _get_comp_words_by_ref cur
+
+  case "$cur" in
+    -*) __railscomp "--pretend --force --skip --quiet" ;;
+    *) __railscomp "$(find "$1" -name "*$2.rb" -exec grep ".*${4-class}.*$3.*" {} \; \
+                  | awk '{ print $2 }' | sed s/$3$//g)" ;;
+  esac
 }
 
 # end of Generators ------------------------------------------------------------
@@ -169,7 +175,7 @@ _rails_destroy(){
     integration_test) __rails_destroy "test/integration/" "_test" "Test" ;;
     performance_test) __rails_destroy "test/performance/" "_test" "Test" ;;
     generator) __rails_destroy "lib/generators/" "_generator" "Generator" ;;
-    *) COMPREPLY=() ;;
+    *) __railscomp "--pretend --force --skip --quiet" ;;
   esac
 }
 
