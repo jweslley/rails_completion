@@ -246,9 +246,7 @@ _rails_runner(){
   esac
 
   case "$prev" in
-    runner) __railscomp "--help -e --environment=" ;;
-    -e*|--environment=*) _filedir ;;
-    *) COMPREPLY==() ;;
+    *) __railscomp "--help -e --environment=" ;;
   esac
 }
 
@@ -265,7 +263,7 @@ _rails(){
 
   options="--help --version"
   if [[ -f "script/rails" ]]; then
-    commands="s server c console g generate d destroy profiler plugin runner benchmarker db dbconsole"
+    commands="s server c console g generate d destroy r runner profiler plugin benchmarker db dbconsole"
   else
     commands="new"
   fi
@@ -286,9 +284,9 @@ _rails(){
     c|console)    _rails_console ;;
     g|generate)   _rails_generate ;;
     d|destroy)    _rails_destroy ;;
+    r|runner)     _rails_runner ;;
     profiler)     _rails_profiler ;;
     plugin)       _rails_plugin ;;
-    r|runner)     _rails_runner ;;
     benchmarker)  _rails_benchmarker ;;
     db|dbconsole) COMPREPLY=() ;;
     *) COMPREPLY=() ;;
