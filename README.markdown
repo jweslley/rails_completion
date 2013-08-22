@@ -12,7 +12,22 @@ The completion routines provide support for completing:
 
 ## Installation
 
-Two-step installation:
+### Brew install (OSX)
+
+```bash
+brew tap homebrew/completions
+brew install rails-completion
+```
+
+then add something like this to your ~/.bashrc
+
+```bash
+if [ -f `brew --prefix`/etc/bash_completion.d/rails.bash ]; then
+    source `brew --prefix`/etc/bash_completion.d/rails.bash
+fi
+```
+
+### Non-OSX
 
   1. Copy the `rails.bash` file to somewhere (e.g. ~/.rails.bash).
   2. Add the following line to your `.bashrc`:
