@@ -20,6 +20,15 @@ Current version of `bash_completion` supports all command-line options available
 
     https://github.com/jweslley/rails_completion/tree/v0.1.9
 
+### Brew install of Bash 4 (Mac OSX)
+Mac OSX still uses the old version 3.2 of bash, which is not compatible to `rails_completion`.
+Install the current version 4 of bash like this:
+```bash
+brew install bash
+sudo bash -c "echo '/usr/local/bin/bash' >> /etc/shells"
+chsh -s /usr/local/bin/bash
+```
+
 ## Installation
 
 ### Brew install (OSX)
