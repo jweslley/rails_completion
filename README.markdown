@@ -10,6 +10,16 @@ The completion routines provide support for completing:
 * rails field's types on generators (e.g.: scaffold, model, migration, ...)
 * common --long-options
 
+## Requirements
+
+  * Rails 3
+  * Bash 4
+  * bash_completion 1.1+.
+
+Current version of `bash_completion` supports all command-line options available in Rails 3.2.x, if you want to use it with Rails 3.0.y or 3.1.z you should check this version:
+
+    https://github.com/jweslley/rails_completion/tree/v0.1.9
+
 ## Installation
 
 ### Brew install (OSX)
@@ -34,16 +44,6 @@ fi
         source ~/.rails.bash
 
 Alternatively, on Debian systems, you can just copy the `rails.bash` file to `/etc/bash_completion.d/` directory.
-
-## Requirements
-
-  * Rails 3
-  * Bash 4
-  * bash_completion 1.1+.
-
-Current version of `bash_completion` supports all command-line options available in Rails 3.2.x, if you want to use it with Rails 3.0.y or 3.1.z you should check this version:
-
-    https://github.com/jweslley/rails_completion/tree/v0.1.9
 
 ## Basic Usage
 
