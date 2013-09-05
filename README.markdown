@@ -13,7 +13,6 @@ The completion routines provide support for completing:
 ## Installation
 
 ### Brew install (OSX)
-
 ```bash
 brew tap homebrew/completions
 brew install rails-completion
@@ -39,6 +38,7 @@ Alternatively, on Debian systems, you can just copy the `rails.bash` file to `/e
 ## Requirements
 
   * Rails 3
+  * Bash 4
   * bash_completion 1.1+.
 
 Current version of `bash_completion` supports all command-line options available in Rails 3.2.x, if you want to use it with Rails 3.0.y or 3.1.z you should check this version:
