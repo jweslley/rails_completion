@@ -114,3 +114,7 @@ If you discover any bugs or have some idea, feel free to create an issue on GitH
 Copyright (c) 2011 [Jonhnny Weslley](<http://www.jonhnnyweslley.net>)
 
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License, version 3, as published by the Free Software Foundation.
+
+
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/jweslley/rails_completion/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+
