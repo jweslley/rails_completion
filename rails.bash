@@ -19,7 +19,9 @@
 #
 #  http://github.com/jweslley/rails_completion
 #
-#  VERSION: 0.3.0
+#  VERSION: 0.3.1 Basic hack to support Rails 4 without touching the
+#    existing Rails 3 options. Looks for bin/rails along with
+#    script/rails.
 
 
 RAILSCOMP_FILE=".rails_generators~"
@@ -309,6 +311,8 @@ _rails(){
 
   options="--help --version"
   if [[ -f "script/rails" ]]; then
+    commands="s server c console g generate d destroy r runner profiler plugin benchmarker db dbconsole"
+  elif [[ -f "bin/rails" ]]; then
     commands="s server c console g generate d destroy r runner profiler plugin benchmarker db dbconsole"
   else
     commands="new plugin"
