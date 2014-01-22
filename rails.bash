@@ -19,19 +19,34 @@
 #
 #  http://github.com/jweslley/rails_completion
 #
-#  VERSION: 0.3.1 Basic hack to support Rails 4 without touching the
-#    existing Rails 3 options. Looks for bin/rails along with
-#    script/rails.
+#  VERSION: 0.4 - Supports Rails 4.0.x command line completions.
 
 
 RAILSCOMP_FILE=".rails_generators~"
+
+__ltrim_equal_completions()
+{
+  if [[ "$1" == *=* && "$COMP_WORDBREAKS" == *=* ]]; then
+      # Remove equal-word prefix from COMPREPLY items
+      local colon_word=${1%${1##*=}}
+      local i=${#COMPREPLY[*]}
+      while [[ $((--i)) -ge 0 ]]; do
+          COMPREPLY[$i]=${COMPREPLY[$i]#"$colon_word"}
+      done
+  fi
+} # __ltrim_equal_completions() - Copy of standard __ltrim_colon_completions()
 
 
 # helper functions -------------------------------------------------------------
 
 __railscomp(){
-  local cur="${COMP_WORDS[COMP_CWORD]}"
+  # Default word breaks includes = and :. Hence use get_by_ref
+  local cur
+  _get_comp_words_by_ref -n =: cur
   COMPREPLY=( $( compgen -W "$1" -- "$cur" ) )
+  # remove colon and equal containing prefix from COMPREPLY items
+  __ltrim_colon_completions "$cur"
+  __ltrim_equal_completions "$cur"
 }
 
 #
@@ -47,35 +62,41 @@ __railscmd(){
 }
 
 __rails_env(){
-  __railscomp "{-e,--environment=}{test,development,production}"
+  __railscomp "{-e\ ,--environment=}{development,test,production}"
 }
 
 __rails_database(){
-  __railscomp "{-d,--database=}{mysql,oracle,postgresql,sqlite3,frontbase,ibm_db,jdbcmysql,jdbcsqlite3,jdbcpostgresql,jdbc}"
+  __railscomp "{-d\ ,--database=}{mysql,oracle,postgresql,sqlite3,frontbase,ibm_db,jdbcmysql,jdbcsqlite3,jdbcpostgresql,jdbc}"
 }
 
 #
 # @param $1 Field's name
+# Bug here
 __rails_types(){
-  __railscomp "${1%:*}:{string,text,integer,float,decimal,datetime,timestamp,date,time,binary,boolean,references,index,uniq}"
+  __railscomp "${1%:*}:{string,text,integer,float,decimal,datetime,timestamp,date,time,binary,boolean,references,index,uniq,primary_key}"
 }
 
 __rails_new(){
   local cur prev
-  _get_comp_words_by_ref cur prev
+  # Ignore breaks at "=" & ":" while fetching current words
+  _get_comp_words_by_ref -n =: cur prev
 
   case "$cur" in
     -d*|--database=*)
       __rails_database
       return
       ;;
-    --ruby=*|--builder=*|--template=*)
+    --ruby=*|--template=*)
       _filedir
       return
       ;;
     -*) __railscomp "$1" ;;
   esac
 
+  case "$prev" in
+    -d) __railscomp "mysql oracle postgresql sqlite3 frontbase ibm_db jdbcmysql jdbcsqlite3 jdbcpostgresql jdbc"
+    return ;;
+  esac
   _filedir
 }
 
@@ -132,11 +153,19 @@ __rails_generators(){
 }
 
 __rails_generator_options(){
-  local cur
-  _get_comp_words_by_ref cur
+  local cur generator
+  # Ignore breaks at "=" & ":" while fetching current words
+  _get_comp_words_by_ref -n =: cur
 
   if [[ $cur == *:* ]]; then
-    __rails_types "$cur"
+  # Namespaced generators should also not work.
+  # Hence call rails_types only for select generators like model, migrate etc.
+    __railscmd generator "model scaffold test_unit:model test_unit:scaffold resource"
+    if [ -z "$generator" ]; then
+      __railscomp "$(__rails_generators_opts $1)"
+    else
+      __rails_types "$cur"
+    fi
   else
     __railscomp "$(__rails_generators_opts $1)"
   fi
@@ -149,7 +178,8 @@ __rails_generator_options(){
 # @param $4 kind. Defaults to class.
 __rails_destroy(){
   local cur
-  _get_comp_words_by_ref cur
+  # Ignore breaks at "=" & ":" while fetching current words
+  _get_comp_words_by_ref -n =: cur
 
   case "$cur" in
     -*) __railscomp "--pretend --force --skip --quiet" ;;
@@ -165,21 +195,21 @@ __rails_destroy(){
 
 _rails_new(){
   if [ "${COMP_WORDS[1]}" == "plugin" ]; then
-    __rails_new "--ruby= --builder= --template=
-      --skip-gemfile --skip-bundle --skip-git --skip-active-record --skip-sprockets
-      --database= --javascript= --skip-javascript --dev --edge --skip-test-unit
-      --old-style-hash --dummy-path= --full --mountable --skip-gemspec
-      --force --pretend --quiet --skip --help"
+    __rails_new "--ruby= --template= --skip-gemfile --skip-bundle --skip-git --skip-keeps
+      --skip-active-record --skip-sprockets --database= --javascript= --skip-javascript
+      --dev --edge --skip-test-unit --rc= --no-rc --dummy-path= --full --mountable
+      --skip-gemspec --skip-gemfile-entry --force --pretend --quiet --skip --help"
   else
-    __rails_new "--ruby= --builder= --template=
-      --skip-gemfile --skip-bundle --skip-git --skip-active-record --skip-sprockets
-      --database= --javascript= --skip-javascript --dev --edge --skip-test-unit
-      --old-style-hash --force --pretend --quiet --skip --help"
+    __rails_new "--ruby= --template= --skip-gemfile --skip-bundle --skip-git --skip-keeps
+     --skip-active-record --skip-sprockets --database= --javascript= --skip-javascript --dev --edge
+     --skip-test-unit --rc= --no-rc --force --pretend --quiet --skip --help"
   fi
 }
 
 _rails_plugin(){
-  if [[ -f "script/rails" ]]; then
+  if [[ -f "bin/rails" ]]; then
+    __railscomp "--help --verbose --root= install remove"
+  elif [[ -f "script/rails" ]]; then
     __railscomp "--help --verbose --root= install remove"
   else
     __railscomp "new"
@@ -187,9 +217,9 @@ _rails_plugin(){
 }
 
 _rails_server(){
-  local cur prev
-  _get_comp_words_by_ref cur prev
-
+  local cur prev environment
+  # Ignore breaks at "=" & ":" while fetching current words
+  _get_comp_words_by_ref -n =: cur prev
   case "$cur" in
     -e*|--environment=*)
       __rails_env
@@ -199,6 +229,7 @@ _rails_server(){
 
   case "$prev" in
     --config=*|--pid=*) _filedir ;;
+    -e) __railscomp "development test production" ;;
     *) __railscomp "--help --pid= -e --environment= --debugger --daemon --config= --binding= --port=" ;;
   esac
 }
@@ -221,7 +252,8 @@ _rails_dbconsole(){
 
 _rails_generate(){
   local cur generator generators
-  _get_comp_words_by_ref cur
+  # Ignore breaks at "=" & ":" while fetching current words
+  _get_comp_words_by_ref -n =: cur
 
   generators=$(test -f "$RAILSCOMP_FILE" && __rails_generators_opts)
   __railscmd generator "$generators"
@@ -239,7 +271,8 @@ _rails_generate(){
 
 _rails_destroy(){
   local cur generator generators
-  _get_comp_words_by_ref cur
+  # Ignore breaks at "=" & ":" while fetching current words
+  _get_comp_words_by_ref -n =: cur
 
   generators=$(test -f "$RAILSCOMP_FILE" && __rails_generators_opts)
   __railscmd generator "$generators"
@@ -268,7 +301,8 @@ _rails_destroy(){
 
 _rails_runner(){
   local cur prev
-  _get_comp_words_by_ref cur prev
+  # Ignore breaks at "=" & ":" while fetching current words
+  _get_comp_words_by_ref -n =: cur prev
 
   case "$cur" in
     -e*|--environment=*)
@@ -278,27 +312,8 @@ _rails_runner(){
   esac
 
   case "$prev" in
+    -e) __railscomp "development test production" ;;
     *) __railscomp "--help -e --environment=" ;;
-  esac
-}
-
-_rails_profiler(){
-  local cur prev
-  _get_comp_words_by_ref cur
-
-  case "$cur" in
-    -*) __railscomp "--help --runs --output --metrics --formats" ;;
-    *) COMPREPLY=() ;;
-  esac
-}
-
-_rails_benchmarker(){
-  local cur prev
-  _get_comp_words_by_ref cur
-
-  case "$cur" in
-    -*) __railscomp "--help --runs --output --metrics" ;;
-    *) COMPREPLY=() ;;
   esac
 }
 
@@ -306,14 +321,15 @@ _rails_benchmarker(){
 
 
 _rails(){
-  local cur options command commands
+  local cur prev options command commands
+  # Exclude '=' and ':' from the list of wordbreaks
   _get_comp_words_by_ref cur
 
   options="--help --version"
-  if [[ -f "script/rails" ]]; then
-    commands="s server c console g generate d destroy r runner profiler plugin benchmarker db dbconsole"
-  elif [[ -f "bin/rails" ]]; then
-    commands="s server c console g generate d destroy r runner profiler plugin benchmarker db dbconsole"
+  if [[ -f "bin/rails" ]]; then
+    commands="s server c console g generate d destroy r runner plugin db dbconsole"
+  elif [[ -f "script/rails" ]]; then
+    commands="s server c console g generate d destroy r runner plugin db dbconsole"
   else
     commands="new plugin"
   fi
@@ -337,8 +353,6 @@ _rails(){
     g|generate)   _rails_generate ;;
     d|destroy)    _rails_destroy ;;
     r|runner)     _rails_runner ;;
-    profiler)     _rails_profiler ;;
-    benchmarker)  _rails_benchmarker ;;
     *) COMPREPLY=() ;;
   esac
 }

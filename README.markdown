@@ -23,12 +23,12 @@ Alternatively, on Debian systems, you can just copy the `rails.bash` file to `/e
 
 ## Requirements
 
-  * Rails 3
-  * bash_completion 1.1+.
+  * Rails 4: Though the completions work in Rails 3 app folders also, the options are 4.0.x specific only. Initially I had planned to support both Rails 3 CLI options and Rails 4.0.x but the code was becoming way too messy and the added benefit was miniscule.
+  * bash_completion 1.99+ is what I have tested it on. Should work on 1.1+
 
-Current version of `bash_completion` supports all command-line options available in Rails 3.2.x, if you want to use it with Rails 3.0.y or 3.1.z you should check this version:
-
-    https://github.com/jweslley/rails_completion/tree/v0.1.9
+Current version of `bash_completion` supports all command-line options available in Rails 4.0.x, if you want to use it with:
+  * Rails 3.2.x - Checkout https://github.com/jweslley/rails_completion
+  * Rails 3.0.y or 3.1.z: Checkout https://github.com/jweslley/rails_completion/tree/v0.1.9
 
 ## Basic Usage
 
