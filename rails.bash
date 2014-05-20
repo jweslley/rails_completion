@@ -84,41 +84,45 @@ __rails_new(){
 
 __rails_generators_create_cache(){
   echo "
-    require ::File.expand_path('../config/application',  __FILE__)
-    require 'rails/generators'
+    if ::File.exists?('../config/application')
+      require ::File.expand_path('../config/application',  __FILE__)
+      require 'rails/generators'
 
-    Rails::Generators.lookup!
+      Rails::Generators.lookup!
 
-    hidden_namespaces = Rails::Generators.hidden_namespaces + ['rails:app']
-    generators = Rails::Generators.subclasses.select do |generator|
-      hidden_namespaces.exclude? generator.namespace
-    end
-
-    shell = Thor::Shell::Basic.new
-    generators_opts = generators.inject({}) do |hash, generator|
-      options = (generator.class_options_help(shell).values.flatten +
-                  generator.class_options.values).uniq.map do |opt|
-        boolean_opt = opt.type == :boolean || opt.banner.empty?
-        boolean_opt ? opt.switch_name : \"#{opt.switch_name}=\"
+      hidden_namespaces = Rails::Generators.hidden_namespaces + ['rails:app']
+      generators = Rails::Generators.subclasses.select do |generator|
+        hidden_namespaces.exclude? generator.namespace
       end
-      hash[generator.namespace.gsub(/^rails:/, '')] = options
-      hash
-    end
 
-    File.open(File.join(Rails.root, '${RAILSCOMP_FILE}'), 'w') do |f|
-      YAML.dump(generators_opts, f)
+      shell = Thor::Shell::Basic.new
+      generators_opts = generators.inject({}) do |hash, generator|
+        options = (generator.class_options_help(shell).values.flatten +
+                    generator.class_options.values).uniq.map do |opt|
+          boolean_opt = opt.type == :boolean || opt.banner.empty?
+          boolean_opt ? opt.switch_name : \"#{opt.switch_name}=\"
+        end
+        hash[generator.namespace.gsub(/^rails:/, '')] = options
+        hash
+      end
+
+      File.open(File.join(Rails.root, '${RAILSCOMP_FILE}'), 'w') do |f|
+        YAML.dump(generators_opts, f)
+      end
     end
   " | ruby > /dev/null
 }
 
 __rails_generators_opts(){
-  echo "
-    require 'yaml'
-    generator = '$1'
-    generators_opts = YAML.load_file('${RAILSCOMP_FILE}')
-    opts = generator.empty? ? generators_opts.keys : generators_opts[generator]
-    opts.each { |opt| puts opt }
-  " | ruby
+  if [ -f "${RAILSCOMP_FILE}" ]; then
+    echo "
+      require 'yaml'
+      generator = '$1'
+      generators_opts = YAML.load_file('${RAILSCOMP_FILE}')
+      opts = generator.empty? ? generators_opts.keys : generators_opts[generator]
+      opts.each { |opt| puts opt }
+    " | ruby
+  fi
 }
 
 __rails_generators(){
